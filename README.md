@@ -13,7 +13,7 @@ covering the rapid adoption of tools such as ChatGPT, GPT-4, Stable Diffusion, a
 ## Setup Instructions
 1. Clone the Repository
 ```python
-git clone https://github.com/your-username/ai_sentiments_analysis.git
+git clone https://github.com/leragogogo/generative_ai_sentiments_analysis.git
 cd generative_ai_sentiments_analysis
 ```
 2. Create a Virtual Environment
