@@ -55,7 +55,6 @@ def fetch_gdelt_chunk(
     """
 
     # Wrap the keyword in double quotes for exact phrase matching 
-    # and to satisfy minimum length requirements for multi-word phrases.
     gdelt_query = f'"{keyword}"'
 
     params = {
@@ -71,20 +70,16 @@ def fetch_gdelt_chunk(
         resp = requests.get(GDELT_API_URL, params=params, timeout=30)
         resp.raise_for_status()
 
-        # Check for empty response body (important for this error)
         if not resp.text.strip():
             print(f"GDELT returned empty response for keyword '{keyword}' "
                   f"{start_dt.date()}–{end_dt.date()}. Skipping.")
             return []
 
-        # Use specific exception handling for JSON decoding errors
         try:
             data = resp.json()
         except requests.exceptions.JSONDecodeError as jde:
             print(f"Error: JSON decode failed for keyword '{keyword}' "
                   f"{start_dt.date()}–{end_dt.date()}. Response text starts with: {resp.text[:100]}")
-            # If GDELT gives a plaintext error, you can inspect it here.
-            # You might want to introduce a delay and retry, but for now, we skip.
             return []
             
     except Exception as e:
@@ -92,14 +87,11 @@ def fetch_gdelt_chunk(
               f"{start_dt.date()}–{end_dt.date()}: {e}")
         return []
 
-    # The rest of the logic remains the same
     if "articles" not in data:
-        # Sometimes GDELT returns no 'articles' key if empty
         return []
 
     articles = data["articles"]
 
-    # ... (rest of the record creation)
     records = []
     for art in articles:
         # GDELT fields can vary; we guard with .get
@@ -109,9 +101,9 @@ def fetch_gdelt_chunk(
                 "title": art.get("title", ""),
                 "source_domain": art.get("sourceDomain", ""),
                 "language": art.get("language", ""),
-                "country": art.get("domainCountryCode", ""),  # country of source domain
-                "published_at": art.get("seendate", ""),      # format: YYYYMMDDHHMMSS
-                "tone": art.get("tone", None),                # may be None
+                "country": art.get("domainCountryCode", ""),  
+                "published_at": art.get("seendate", ""),      
+                "tone": art.get("tone", None),                
                 "keyword": keyword,
                 "source": "gdelt",
             }
@@ -178,7 +170,7 @@ def scrape_gdelt(
             time.sleep(sleep_between_requests)
 
     if not all_records:
-        print("[No GDELT articles collected. Check keywords/date range.")
+        print("No GDELT articles collected. Check keywords/date range.")
         return
 
     df = pd.DataFrame(all_records)
@@ -186,11 +178,11 @@ def scrape_gdelt(
     # Normalize published_at
     df["published_at_iso"] = df["published_at"].apply(normalize_published_time)
 
-    # Deduplicate by URL + keyword to avoid exact duplicates
+    # Deduplicate by URL
     before = len(df)
     df = df.drop_duplicates(subset=["url", "keyword"])
     after = len(df)
-    print(f"[RESULT] Deduplicated: {before} → {after} rows")
+    print(f"Deduplicated: {before} → {after} rows")
 
     # Ensure output directory exists
     directory = os.path.dirname(output_path)
@@ -198,11 +190,11 @@ def scrape_gdelt(
         os.makedirs(directory, exist_ok=True)
 
     df.to_csv(output_path, index=False, encoding="utf-8")
-    print(f"[RESULT] Saved {len(df)} rows to {output_path}")
+    print(f"Saved {len(df)} rows to {output_path}")
 
 
 if __name__ == "__main__":
-    # Same keyword universe as YouTube for comparability
+    # Keywords to fetch comments related to AI
     KEYWORDS = [
         "generative ai",
         "chatgpt",

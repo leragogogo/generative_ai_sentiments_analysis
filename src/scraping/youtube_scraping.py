@@ -68,9 +68,6 @@ def search_videos(
             if not next_page_token:
                 break
 
-            # Be nice to the API
-            # time.sleep(0.2)
-
         print(f"Collected {collected} videos for keyword '{keyword}'")
 
     # Remove duplicates by video_id
@@ -89,7 +86,7 @@ def fetch_comments_for_video(
 ) -> List[Dict]:
     """
     Fetch top-level comments for a single video within the date range.
-    Returns a list of dicts with comment info + video metadata.
+    Returns a list of dicts with comment info.
     """
     comments = []
     video_id = video["video_id"]
@@ -186,21 +183,15 @@ def scrape_youtube_comments(
     end_rfc3339 = f"{end_date_str}T23:59:59Z"
 
     # For local comparison: timezone-aware UTC datetimes
-    # Convert 'YYYY-MM-DD' strings to timezone-aware UTC datetimes
-    # This is the correct, fixed block.
     start_dt = datetime.fromisoformat(start_date_str).replace(
         tzinfo=timezone.utc
     )
     end_dt = datetime.fromisoformat(end_date_str).replace(
         tzinfo=timezone.utc,
-        hour=23, # Account for the end of the day
+        hour=23,
         minute=59,
         second=59
     )
-
-    # For filtering comments locally
-    #start_dt = datetime.fromisoformat(start_date_str)
-    #end_dt = datetime.fromisoformat(end_date_str)
 
     videos = search_videos(
         youtube=youtube,
@@ -235,7 +226,7 @@ if __name__ == "__main__":
     load_dotenv()
     API_KEY = os.getenv("YOUTUBE_API_KEY")
     
-    # Important keywords to fetch comments related to AI
+    # Keywords to fetch comments related to AI
     KEYWORDS = [
         "generative ai",
         "chatgpt",
